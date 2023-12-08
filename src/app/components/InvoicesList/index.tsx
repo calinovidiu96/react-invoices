@@ -236,6 +236,9 @@ const InvoicesList = (): React.ReactElement => {
     }
   }
 
+  // Will be used to check the deadline
+  const currentDate = new Date()
+
   return (
     <>
       {loading && (
@@ -326,7 +329,16 @@ const InvoicesList = (): React.ReactElement => {
                       <td>{invoice.total}</td>
                       <td>{invoice.tax}</td>
                       <td>{invoice.date}</td>
-                      <td>{invoice.deadline}</td>
+                      <td
+                        className={
+                          invoice.deadline &&
+                          new Date(invoice.deadline) < currentDate
+                            ? 'bg-warning'
+                            : '' // Apply bg-warning if the deadline is in the past
+                        }
+                      >
+                        {invoice.deadline}
+                      </td>
                       <td className="d-flex justify-content-between">
                         <Button
                           variant="info"

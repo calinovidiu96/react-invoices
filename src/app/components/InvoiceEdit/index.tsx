@@ -99,6 +99,12 @@ const InvoiceEdit: React.FC = () => {
       return null
     }
 
+    // Validate deadline is greater than or equal to date
+    if (new Date(editedInvoice.deadline) < new Date(editedInvoice.date)) {
+      alert('Deadline must be greater than or equal to the Date.')
+      return
+    }
+
     // Create an array for invoice lines from both old and new products
     const invoiceLines = [
       ...(editedInvoice.invoice_lines || []),

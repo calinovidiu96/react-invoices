@@ -301,8 +301,6 @@ const InvoicesList = (): React.ReactElement => {
                     <th>Address</th>
                     <th>Total</th>
                     <th>Tax</th>
-                    <th>Finalized</th>
-                    <th>Paid</th>
                     <th>Date</th>
                     <th>Deadline</th>
                     <th>Actions</th>
@@ -327,8 +325,6 @@ const InvoicesList = (): React.ReactElement => {
                       </td>
                       <td>{invoice.total}</td>
                       <td>{invoice.tax}</td>
-                      <td>{invoice.finalized ? 'Yes' : 'No'}</td>
-                      <td>{invoice.paid ? 'Yes' : 'No'}</td>
                       <td>{invoice.date}</td>
                       <td>{invoice.deadline}</td>
                       <td className="d-flex justify-content-between">

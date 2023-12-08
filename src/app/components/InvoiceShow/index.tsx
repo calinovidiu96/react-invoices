@@ -12,12 +12,14 @@ import generateFileName from 'app/utils/generateFileName'
 const DisplayField: React.FC<{
   label: string
   value: string | number | boolean
-}> = ({ label, value }) => (
-  <Row className="mb-3">
+  rowClassName?: string
+  colClassName?: string
+}> = ({ label, value, rowClassName, colClassName }) => (
+  <Row className={`mb-3 ${rowClassName}`}>
     <Col md={3}>
       <strong>{label}:</strong>
     </Col>
-    <Col md={9}>
+    <Col md={9} className={`${colClassName}`}>
       <span>{value}</span>
     </Col>
   </Row>
@@ -92,6 +94,9 @@ const InvoiceShow = () => {
     navigate(`/edit-invoice/${id}`)
   }
 
+  // Will be used to check the deadline
+  const currentDate = new Date()
+
   return (
     <Container className="my-5">
       <h2 className="mb-4">View Invoice with ID: {invoiceData?.id}</h2>
@@ -112,6 +117,12 @@ const InvoiceShow = () => {
               <DisplayField
                 label="Deadline"
                 value={invoiceData.deadline || ''}
+                rowClassName={
+                  invoiceData.deadline &&
+                  new Date(invoiceData.deadline) < currentDate
+                    ? 'bg-warning'
+                    : '' // Apply bg-warning if the deadline is in the past
+                }
               />
               <DisplayField label="Total" value={invoiceData.total || ''} />
               <DisplayField label="Tax" value={invoiceData.tax || ''} />

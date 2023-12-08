@@ -264,14 +264,19 @@ const InvoicesList = (): React.ReactElement => {
                 />
               )}
               {searchType === 'product' && (
-                <ProductAutocomplete
-                  value={selectedProduct}
-                  onChange={(product) => {
-                    setFilterId(product?.id || null)
-                    setSelectedProduct(product)
-                    setFilterField('product_id')
-                  }}
-                />
+                <>
+                  <p className="text-muted small">* Currently not available</p>
+                  <ProductAutocomplete
+                    value={selectedProduct}
+                    onChange={(product) => {
+                      return
+
+                      setFilterId(product?.id || null)
+                      setSelectedProduct(product)
+                      setFilterField('product_id')
+                    }}
+                  />
+                </>
               )}
 
               <Button

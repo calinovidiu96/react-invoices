@@ -27,6 +27,6 @@ This React-based frontend application serves as an Invoice Manager, providing a 
 
 The app will run on http://localhost:3000
 
-## You can try it online on:
+## 🌐 You can try it online on:
 
 - 'heroku-build-in-progress'

@@ -8,7 +8,7 @@ const generateFileName = (invoiceId: string): string => {
   const minutes = String(currentDate.getMinutes()).padStart(2, '0')
   const seconds = String(currentDate.getSeconds()).padStart(2, '0')
 
-  // Combine the unique identifier, invoice ID, and current date for the fileName
+  // Combine the invoice ID, and current date for the fileName
   const fileName = `invoice_${invoiceId}_${year}-${month}-${day}_${hours}-${minutes}-${seconds}.pdf`
 
   return fileName

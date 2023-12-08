@@ -28,7 +28,6 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
   return (
     <Container>
       <Row>
-        {/* Pagination on the left */}
         <Col className="d-flex justify-content-center">
           <BootstrapPagination>
             <BootstrapPagination.First onClick={() => handlePageChange(1)} />
@@ -40,6 +39,7 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
                 key={page}
                 active={page === currentPage}
                 onClick={() => handlePageChange(page)}
+                style={{ zIndex: -100 }}
               >
                 {page}
               </BootstrapPagination.Item>
@@ -55,7 +55,6 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
           </BootstrapPagination>
         </Col>
 
-        {/* "Per page" buttons on the right */}
         <Col className="d-flex justify-content-center">
           <ButtonGroup className="mb-2">
             <Button

@@ -1,13 +1,31 @@
 import { useApi } from 'api'
-import { Invoice } from 'types'
+import { Invoice, Customer, Product } from 'types'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Table, Button, Spinner } from 'react-bootstrap'
+import { Row, Col, Table, Button, Spinner } from 'react-bootstrap'
 
 import { calculateVisiblePages } from 'app/utils/calculateVisiblePages'
 import CustomPagination from '../CustomPagination'
 import Modal from '../modals/GeneralModal'
 import CreateInvoiceModal from '../modals/CreateInvoiceModal'
+import CustomerAutocomplete from '../CustomerAutocomplete'
+import ProductAutocomplete from '../ProductAutocomplete'
+
+const SearchComponent: React.FC<{ onSelectType: (type: string) => void }> = ({
+  onSelectType,
+}) => (
+  <div className="mb-3">
+    <span className="fs-5">Search by: </span>
+    <select defaultValue="" onChange={(e) => onSelectType(e.target.value)}>
+      <option value="" disabled hidden>
+        Select
+      </option>
+
+      <option value="customer">Customer</option>
+      <option value="product">Product</option>
+    </select>
+  </div>
+)
 
 const InvoicesList = (): React.ReactElement => {
   const api = useApi()
@@ -27,14 +45,43 @@ const InvoicesList = (): React.ReactElement => {
   const [showPayeModal, setShowPayeModal] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
   const [createInvoiceTrigger, setCreateInvoiceTrigger] = useState(false)
+  const [filterId, setFilterId] = useState<number | null>(null)
+  const [filterField, setFilterField] = useState<string | null>(null)
+
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null
+  )
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [searchType, setSearchType] = useState<string | null>(null)
+
+  const handleSelectType = (type: string) => {
+    setSearchType(type)
+  }
 
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
         setLoading(true)
+
+        // I tried to use the ProductAutocomplete to filter the invoices by product_id
+        // But it seems the backend API doesn't accept 'product_id' as field
+
+        // Another idea would be to add a range-date filter, but again, I don't have the
+        // Backend API documentation to see how it works
+        const filter = filterId
+          ? [
+              {
+                field: filterField,
+                operator: 'eq',
+                value: filterId,
+              },
+            ]
+          : []
+
         const { data } = await api.getInvoices({
           per_page: perPage,
           page: currentPage,
+          filter: JSON.stringify(filter),
         })
 
         setInvoicesList(data.invoices)
@@ -53,7 +100,7 @@ const InvoicesList = (): React.ReactElement => {
     }
 
     fetchInvoices()
-  }, [api, currentPage, perPage, createInvoiceTrigger])
+  }, [api, currentPage, perPage, createInvoiceTrigger, filterId, filterField])
 
   const handleRowClick = (invoiceId: number) => {
     navigate(`/invoice/${invoiceId}`)
@@ -125,6 +172,14 @@ const InvoicesList = (): React.ReactElement => {
     setShowCreateModal(true)
   }
 
+  const handleResetFilter = () => {
+    setFilterId(null)
+    setFilterField(null)
+    setSelectedCustomer(null)
+    setSelectedProduct(null)
+    setSearchType(null)
+  }
+
   const handleFinalizeConfirm = async () => {
     try {
       const payload = {
@@ -192,107 +247,171 @@ const InvoicesList = (): React.ReactElement => {
       )}
       {!loading && (
         <>
-          <div className="col-2 offset-10 d-flex justify-content-between align-items-center my-3">
-            <span className="fs-5">Create New Invoice: </span>
-            <Button variant="primary" onClick={handleCreateClick}>
-              Create
-            </Button>
-          </div>
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th>Id</th>
-                <th>Customer</th>
-                <th>Address</th>
-                <th>Total</th>
-                <th>Tax</th>
-                <th>Finalized</th>
-                <th>Paid</th>
-                <th>Date</th>
-                <th>Deadline</th>
-                <th>Actions</th>
-                <th>Finalize</th>
-                <th>Pay</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoicesList.map((invoice) => (
-                <tr key={invoice.id} onClick={() => handleRowClick(invoice.id)}>
-                  <td>{invoice.id}</td>
-                  <td>
-                    {invoice.customer?.first_name} {invoice.customer?.last_name}
-                  </td>
-                  <td>
-                    {invoice.customer?.address}, {invoice.customer?.zip_code}{' '}
-                    {invoice.customer?.city}
-                  </td>
-                  <td>{invoice.total}</td>
-                  <td>{invoice.tax}</td>
-                  <td>{invoice.finalized ? 'Yes' : 'No'}</td>
-                  <td>{invoice.paid ? 'Yes' : 'No'}</td>
-                  <td>{invoice.date}</td>
-                  <td>{invoice.deadline}</td>
-                  <td className="d-flex justify-content-between">
-                    <Button
-                      variant="info"
-                      onClick={(event) => handleEditClick(invoice.id, event)}
-                      disabled={invoice.finalized}
+          <Row>
+            <Col md={6}>
+              <SearchComponent onSelectType={handleSelectType} />
+              {searchType === 'customer' && (
+                <CustomerAutocomplete
+                  value={selectedCustomer}
+                  onChange={(customer) => {
+                    setFilterId(customer?.id || null)
+                    setSelectedCustomer(customer)
+                    setFilterField('customer_id')
+                  }}
+                />
+              )}
+              {searchType === 'product' && (
+                <ProductAutocomplete
+                  value={selectedProduct}
+                  onChange={(product) => {
+                    setFilterId(product?.id || null)
+                    setSelectedProduct(product)
+                    setFilterField('product_id')
+                  }}
+                />
+              )}
+
+              <Button
+                variant="primary"
+                onClick={handleResetFilter}
+                className="pt-1 mt-3"
+              >
+                Reset filter
+              </Button>
+            </Col>
+            <Col md={6} className="d-flex justify-content-end align-items-end">
+              <span className="fs-5 me-5 pb-1">Create New Invoice: </span>
+              <Button
+                variant="primary"
+                onClick={handleCreateClick}
+                className="pt-1"
+              >
+                Create
+              </Button>
+            </Col>
+          </Row>
+
+          {invoicesList.length > 0 ? (
+            <>
+              <Table striped bordered hover className="mt-5">
+                <thead>
+                  <tr>
+                    <th>Id</th>
+                    <th>Customer</th>
+                    <th>Address</th>
+                    <th>Total</th>
+                    <th>Tax</th>
+                    <th>Finalized</th>
+                    <th>Paid</th>
+                    <th>Date</th>
+                    <th>Deadline</th>
+                    <th>Actions</th>
+                    <th>Finalize</th>
+                    <th>Pay</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoicesList.map((invoice) => (
+                    <tr
+                      key={invoice.id}
+                      onClick={() => handleRowClick(invoice.id)}
                     >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="danger"
-                      onClick={(event) => handleDeleteClick(invoice.id, event)}
-                    >
-                      Delete
-                    </Button>
-                  </td>
-                  <td>
-                    {invoice.finalized ? (
-                      <div style={{ textAlign: 'center' }}>
-                        <span className="fs-5" style={{ color: 'green' }}>
-                          Finalized
-                        </span>
-                      </div>
-                    ) : (
-                      <Button
-                        variant="success"
-                        onClick={(event) =>
-                          handleFinalizeClick(invoice.id, event)
-                        }
-                      >
-                        Finalize
-                      </Button>
-                    )}
-                  </td>
-                  <td>
-                    {invoice.paid ? (
-                      <div style={{ textAlign: 'center' }}>
-                        <span className="fs-5" style={{ color: 'green' }}>
-                          Paid
-                        </span>
-                      </div>
-                    ) : (
-                      <Button
-                        variant="success"
-                        onClick={(event) => handlePayClick(invoice.id, event)}
-                      >
-                        Pay
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-          <CustomPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            visiblePages={visiblePages}
-            handlePageChange={handlePageChange}
-            perPage={perPage}
-            setPerPage={setPerPage}
-          />
+                      <td>{invoice.id}</td>
+                      <td>
+                        {invoice.customer?.first_name}{' '}
+                        {invoice.customer?.last_name}
+                      </td>
+                      <td>
+                        {invoice.customer?.address},{' '}
+                        {invoice.customer?.zip_code} {invoice.customer?.city}
+                      </td>
+                      <td>{invoice.total}</td>
+                      <td>{invoice.tax}</td>
+                      <td>{invoice.finalized ? 'Yes' : 'No'}</td>
+                      <td>{invoice.paid ? 'Yes' : 'No'}</td>
+                      <td>{invoice.date}</td>
+                      <td>{invoice.deadline}</td>
+                      <td className="d-flex justify-content-between">
+                        <Button
+                          variant="info"
+                          onClick={(event) =>
+                            handleEditClick(invoice.id, event)
+                          }
+                          disabled={invoice.finalized}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="danger"
+                          onClick={(event) =>
+                            handleDeleteClick(invoice.id, event)
+                          }
+                        >
+                          Delete
+                        </Button>
+                      </td>
+                      <td>
+                        {invoice.finalized ? (
+                          <div style={{ textAlign: 'center' }}>
+                            <span className="fs-5" style={{ color: 'green' }}>
+                              Finalized
+                            </span>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="success"
+                            onClick={(event) =>
+                              handleFinalizeClick(invoice.id, event)
+                            }
+                          >
+                            Finalize
+                          </Button>
+                        )}
+                      </td>
+                      <td>
+                        {invoice.paid ? (
+                          <div style={{ textAlign: 'center' }}>
+                            <span className="fs-5" style={{ color: 'green' }}>
+                              Paid
+                            </span>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="success"
+                            onClick={(event) =>
+                              handlePayClick(invoice.id, event)
+                            }
+                          >
+                            Pay
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+              <CustomPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                visiblePages={visiblePages}
+                handlePageChange={handlePageChange}
+                perPage={perPage}
+                setPerPage={setPerPage}
+              />
+            </>
+          ) : (
+            <div className="d-flex justify-content-center align-items-center mt-5">
+              <div className="text-center">
+                <h2>No invoices</h2>
+                <p className="lead">
+                  There are currently no invoices available.
+                </p>
+                <p className="text-muted small">
+                  * Reset filters if you use any
+                </p>
+              </div>
+            </div>
+          )}
         </>
       )}
 

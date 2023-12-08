@@ -6,7 +6,6 @@ import InvoiceShow from './components/InvoiceShow'
 import InvoiceEdit from './components/InvoiceEdit'
 import CustomersList from './components/CustomersList'
 import ProductsList from './components/ProductsList'
-// import GettingStarted from './GettingStarted'
 
 const AppNavbar = () => {
   return (
@@ -35,7 +34,6 @@ const AppNavbar = () => {
 function App() {
   return (
     <div className="px-5">
-      {/* <GettingStarted /> */}
       <Router>
         <AppNavbar />
         <Routes>

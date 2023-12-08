@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router'
 import { Container, Row, Col, Table, Alert, Button } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
+import { PDFDownloadLink } from '@react-pdf/renderer'
 
+import InvoicePDF from 'app/utils/InvoicePDF'
 import { useApi } from 'api'
 import { Invoice } from 'types'
+import generateFileName from 'app/utils/generateFileName'
 
 const DisplayField: React.FC<{
   label: string
@@ -77,6 +80,8 @@ const InvoiceShow = () => {
 
   const [invoiceData, setInvoiceData] = useState<Invoice | undefined>()
 
+  const fileName = generateFileName(String(invoiceData?.id))
+
   useEffect(() => {
     api.getInvoice(id).then(({ data }) => {
       setInvoiceData(data)
@@ -115,7 +120,20 @@ const InvoiceShow = () => {
               <DisplayCustomerDetails customer={invoiceData.customer} />
             </Col>
           </Row>
-
+          <Row>
+            <Col className="d-flex justify-content-end">
+              <PDFDownloadLink
+                document={<InvoicePDF invoiceData={invoiceData} />}
+                fileName={fileName}
+              >
+                {({ blob, url, loading, error }) => (
+                  <Button variant="success" disabled={loading}>
+                    {loading ? 'Loading document...' : 'Download PDF'}
+                  </Button>
+                )}
+              </PDFDownloadLink>
+            </Col>
+          </Row>
           <Row className="mt-4">
             <Col>
               <DisplayInvoiceLines lines={invoiceData.invoice_lines} />

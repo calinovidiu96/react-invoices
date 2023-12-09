@@ -31,4 +31,5 @@ The app will run on http://localhost:3000
 
 ## 🌐 You can try it online on:
 
-react-invoices-calinovidiu96.vercel.app
+[react-invoices-calinovidiu96.vercel.app
+](https://react-invoices-calinovidiu96.vercel.app/)https://react-invoices-calinovidiu96.vercel.app/

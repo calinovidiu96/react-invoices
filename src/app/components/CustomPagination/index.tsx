@@ -39,7 +39,7 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
                 key={page}
                 active={page === currentPage}
                 onClick={() => handlePageChange(page)}
-                style={{ zIndex: -100 }}
+                style={{ opacity: 0.99 }} // There resolves a visual bug (it interferates with the Autocomplete component selecting list)
               >
                 {page}
               </BootstrapPagination.Item>

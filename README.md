@@ -31,4 +31,4 @@ The app will run on http://localhost:3000
 
 ## 🌐 You can try it online on:
 
-- 'heroku-build-in-progress'
+- react-invoices-calinovidiu96.vercel.app
